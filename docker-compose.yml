@@ -1,0 +1,36 @@
+version: "2.1"
+
+networks:
+  default:
+    driver: bridge
+
+volumes:
+  torchintegral-cache:
+
+services:
+  torchintegral:
+    #privileged: True
+    runtime: nvidia
+    build: .
+    image: torchintegral
+    container_name: torchintegral
+    hostname: torchintegral
+
+    environment:
+      NVIDIA_VISIBLE_DEVICES: ALL
+    devices:
+    - /dev/dri:/dev/dri
+    networks:
+    - default
+    volumes:
+      - torchintegral-cache:/workspace/.cache
+    command: >
+      /bin/bash -xc "pip list ; cd examples/sr; time python edsr.py --integral --batch-size 16 --scale 4"
+
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
+              count: all
